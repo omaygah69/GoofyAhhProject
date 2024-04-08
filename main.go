@@ -1,12 +1,9 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 )
-type Data struct{
-    Title string
-}
 
 func main(){
     router := http.NewServeMux()
@@ -18,24 +15,6 @@ func main(){
         Addr: ":6969",
         Handler: router,
     }
+    fmt.Printf("Started, Listening To: %v", server.Addr)
     server.ListenAndServe()
-}
-
-func asd(w http.ResponseWriter, r *http.Request){
-    w.Write([]byte("bruh"))
-}
-
-func getTitle(w http.ResponseWriter, r *http.Request){
-    sampledata := Data{
-        Title: "Nigga",
-    }
-
-    jsonData, err := json.MarshalIndent(sampledata, "", " ")
-    if err != nil {
-        http.Error(w, "Error", http.StatusInternalServerError)
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-
-    w.Write(jsonData)
 }
