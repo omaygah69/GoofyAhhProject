@@ -6,9 +6,16 @@ import (
 func main(){
     router := http.NewServeMux()
     
-    router.HandleFunc("/getshit", func(w http.ResponseWriter, r *http.Request){
-        w.Write([]byte("Geniggas"))
-    })
+    router.HandleFunc("/getshit", asd)
+    
+    server := http.Server{
+        Addr: ":6969",
+        Handler: router,
+    }
 
-    http.ListenAndServe(":6969", router)
+    server.ListenAndServe()
+}
+
+func asd(w http.ResponseWriter, r *http.Request){
+    w.Write([]byte("bruh"))
 }
