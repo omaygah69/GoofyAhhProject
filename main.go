@@ -23,6 +23,7 @@ func main(){
         Addr: ":6969",
         Handler: router,
     }
+
     fmt.Printf("Started, Listening To%v", server.Addr)
     log.Fatal(server.ListenAndServe())
 }
