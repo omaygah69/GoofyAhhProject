@@ -1,51 +1,79 @@
 package main
+
 import (
-    "net/http"
-    "encoding/json"
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var client *mongo.Client
 
 type Todo struct{
     Title string
     Is_Completed bool
 }
 
-type Note struct{
-    Title string 
-    Text string 
-}
-
-func asd(w http.ResponseWriter, r *http.Request){
-    w.Write([]byte("bruh"))
+func init(){
+    clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+    var err error
+    client, err = mongo.Connect(context.Background(), clientOptions)
+    if err != nil{
+        log.Fatal(err) 
+    }
 }
 
 func getTodo(w http.ResponseWriter, r *http.Request){
-    sampledata := Todo{
+    collection := client.Database("Lobotomy").Collection("ToDo")
+    //Find all documents
+    result, err := collection.Find(context.Background(), bson.D{})
+    if err != nil{
+        log.Fatal(err)
+    }
+    defer result.Close(context.Background())
+	var Items []Todo
+	for result.Next(context.Background()){
+		var td Todo
+		if err := result.Decode(&td);err != nil{
+			log.Fatal(err)
+		}
+		Items = append(Items, td)
+	}
+	json.NewEncoder(w).Encode(Items)
+}
+
+func sampletest(w http.ResponseWriter){
+    sampledata := Todo {
         Title: "Nigga",
     }
-
     jsonData, err := json.MarshalIndent(sampledata, "", " ")
-    if err != nil {
+	if err != nil {
         http.Error(w, "Error", http.StatusInternalServerError)
     }
-
     w.Header().Set("Content-Type", "application/json")
     w.Write(jsonData)
 }
 
-func getNotes(w http.ResponseWriter, r *http.Request){
-    sampleData := Note{
-        Title: "Note_Number 1",
-    }
-    jsonData, err := json.MarshalIndent(sampleData, "", " ")
+func postToDo(w http.ResponseWriter, r *http.Request){
+    var td Todo
+    err := json.NewDecoder(r.Body).Decode(&td)
     if err != nil{
-        http.Error(w, "Error", http.StatusInternalServerError)
+        http.Error(w, "Error parsing json", http.StatusBadRequest)
+        return
     }
-
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(jsonData)
+    collection := client.Database("Lobotomy").Collection("ToDo")
+    _, err = collection.InsertOne(context.Background(), td)
+    if err != nil{
+        http.Error(w, "Error Inserting Item", http.StatusInternalServerError)
+        return
+    }
+    w.WriteHeader(http.StatusCreated)
+    w.Write([]byte("Item Creation Completed"))
 }
 
-func createNote(w http.ResponseWriter, r *http.Request){
+func deleteToDo(w http.ResponseWriter, r *http.Request){
     
 }
-
