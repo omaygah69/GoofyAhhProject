@@ -75,5 +75,18 @@ func postToDo(w http.ResponseWriter, r *http.Request){
 }
 
 func deleteToDo(w http.ResponseWriter, r *http.Request){
-    
+    todoID := r.URL.Query().Get("id")
+    if todoID == ""{
+        http.Error(w, "Error ID not provided", http.StatusBadRequest)
+        return
+    }
+    filter := bson.M{"_id": todoID}
+    collection := client.Database("Lobotomy").Collection("ToDo")
+    _, err := collection.DeleteOne(context.Background(), filter)
+    if err != nil{
+        http.Error(w, "Error deleting Item", http.StatusInternalServerError)
+        return
+    }
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Item was deleted"))
 }
