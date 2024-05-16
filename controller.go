@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -75,12 +76,13 @@ func postToDo(w http.ResponseWriter, r *http.Request){
 }
 
 func deleteToDo(w http.ResponseWriter, r *http.Request){
-    todoID := r.URL.Query().Get("id")
-    if todoID == ""{
+    todoTitle := r.PathValue("title")
+    if todoTitle == ""{
         http.Error(w, "Error ID not provided", http.StatusBadRequest)
         return
     }
-    filter := bson.M{"_id": todoID}
+
+    filter := bson.M{ "title": todoTitle }
     collection := client.Database("Lobotomy").Collection("ToDo")
     _, err := collection.DeleteOne(context.Background(), filter)
     if err != nil{
@@ -88,5 +90,32 @@ func deleteToDo(w http.ResponseWriter, r *http.Request){
         return
     }
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Item was deleted"))
+    w.Write([]byte(todoTitle))
+}
+
+func updateToDo(w http.ResponseWriter, r *http.Request){
+    todoTitle := r.PathValue("title")
+    if todoTitle == ""{
+        http.Error(w, "Title not Provided", http.StatusBadRequest)
+        return
+    }
+    var updateReq Todo
+	err := json.NewDecoder(r.Body).Decode(&updateReq)
+	if err != nil {
+		http.Error(w, "Error parsing json", http.StatusBadRequest)
+		return
+	}
+
+	collection := client.Database("Lobotomy").Collection("ToDo")
+	filter := bson.M{"title": todoTitle}
+	update := bson.M{"$set": bson.M{"is_completed": updateReq.Is_Completed}}
+
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		http.Error(w, "Error updating item", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Item update completed"))
 }

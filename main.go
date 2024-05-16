@@ -16,6 +16,8 @@ func main(){
     router.Handle("/", File_Server)
     router.HandleFunc("/getTodo", getTodo)
     router.HandleFunc("POST /post", postToDo)
+    router.HandleFunc("DELETE /delete/{title}", deleteToDo)
+    router.HandleFunc("PUT /update/{title}", updateToDo)
     server := http.Server{
         Addr: ":6969",
         Handler: router,
