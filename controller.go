@@ -1,11 +1,9 @@
 package main
-
 import (
 	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -115,7 +113,6 @@ func updateToDo(w http.ResponseWriter, r *http.Request){
 		http.Error(w, "Error updating item", http.StatusInternalServerError)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Item update completed"))
 }
